@@ -1,11 +1,60 @@
-version: '3.8'
+version: '3.9'
 
 services:
   mkdocs:
     build: ./docs 
     volumes:
-      - ./docs:/docs  # Maps local 'docs' directory to '/docs' in the container
-
+      - ./docs:/docs
     ports:
       - "8000:8000"
     command: "mkdocs serve -a 0.0.0.0:8000"
+
+  #{% if cookiecutter.airflow == "Yes" %}
+  airflow:
+    build: ./airflow
+    depends_on:
+      - airflow_postgres
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:CHANGEME2024@airflow_postgres/airflow
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./data/raw:/data/raw
+    ports:
+     - "8080:8080"
+    command: airflow standalone
+
+  airflow_postgres:
+    image: postgres:latest
+    container_name: airflow_postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: CHANGEME2024
+      POSTGRES_DB: airflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - airflow_postgres_data:/var/lib/postgresql/data
+  #{% endif %}
+
+  #{% if cookiecutter.streamlit == "Yes" %}
+  streamlit:
+    image: yourstreamlitapp:latest
+    # labels:
+    #     - "traefik.http.routers.app-vae.rule=PathPrefix(`/app-vae`)"
+    #     - "traefik.http.routers.app-vae.entrypoints=web"
+    #     - "traefik.http.services.app-vae.loadbalancer.server.port=8501"
+    #     - "traefik.http.middlewares.app-vae-stripprefix.stripprefix.prefixes=/app-vae"
+    #     - "traefik.http.routers.app-vae.middlewares=app-vae-stripprefix"
+    build: ./streamlit
+    command: streamlit run streamlit_app.py --server.port 8501
+    volumes:
+        - ./:/usr/src/app
+    ports:
+      - "8501:8501"
+    
+  #{% endif %}
+volumes:
+ # {% if cookiecutter.airflow == "Yes" %}
+  airflow_postgres_data:
+ # {% endif %}
