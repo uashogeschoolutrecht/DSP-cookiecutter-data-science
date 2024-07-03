@@ -30,6 +30,9 @@ pip_only_packages = [
     "python-dotenv",
 ]
 
+
+
+
 # Use the selected documentation package specified in the config,
 # or none if none selected
 docs_path = Path("docs")
@@ -39,12 +42,43 @@ pip_only_packages += ["{{ cookiecutter.docs }}"]
 docs_subpath = docs_path / "{{ cookiecutter.docs }}"
 for obj in docs_subpath.iterdir():
     shutil.move(str(obj), str(docs_path))
-# {% endif %}
+ # {% endif %}  
 
 # Remove all remaining docs templates
 for docs_template in docs_path.iterdir():
     if docs_template.is_dir() and not docs_template.name == "docs":
-        shutil.rmtree(docs_template)
+        shutil.rmtree(docs_template) 
+
+
+
+
+# Use the selected documentation package specified in the config,
+# or none if none selected
+airflow_path = Path("airflow")
+
+# {% if cookiecutter.airflow == "No" %}
+# Remove all content in the airflow directory
+if airflow_path.exists():
+    for obj in airflow_path.iterdir():
+        if obj.is_dir():
+            shutil.rmtree(obj)
+        else:
+            obj.unlink()
+# {% endif %}
+
+
+streamlit_path = Path("streamlit")
+
+# {% if cookiecutter.streamlit_path == "No" %}
+# Remove all content in the streamlit directory
+if streamlit_path.exists():
+    for obj in streamlit_path.iterdir():
+        if obj.is_dir():
+            shutil.rmtree(obj)
+        else:
+            obj.unlink()
+# {% endif %}
+
 
 #
 #  POST-GENERATION FUNCTIONS

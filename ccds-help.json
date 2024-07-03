@@ -256,6 +256,52 @@
         ]
     },
     {
+        "field": "airflow",
+        "help": {
+            "description": "Whether to include apache airflow as a docker container",
+            "more_information": ""
+        },
+        "choices": [
+            {
+                "choice": "Yes",
+                "help": {
+                    "description": "Create Apache Airflow container",
+                    "more_information": "[website](https://airflow.apache.org/)"
+                } 
+            },
+            {
+                "choice": "No",
+                "help": {
+                    "description": "It will exclude an Apache Airflow container",
+                    "more_information": ""
+                } 
+            }
+        ]
+    },
+    {
+        "field": "streamlit",
+        "help": {
+            "description": "Whether to include streamlit as a docker container",
+            "more_information": ""
+        },
+        "choices": [
+            {
+                "choice": "Yes",
+                "help": {
+                    "description": "Create streamlit container",
+                    "more_information": "[website](https://streamlit.io/)"
+                } 
+            },
+            {
+                "choice": "No",
+                "help": {
+                    "description": "It will exclude a streamlit container",
+                    "more_information": ""
+                } 
+            }
+        ]
+    },
+    {
         "field": "include_code_scaffold",
         "help": {
             "description": "Whether to include some basic boilerplate code in the Python module.",

@@ -28,5 +28,7 @@
     ],
     "open_source_license": ["No license file", "MIT", "BSD-3-Clause"],
     "docs": ["mkdocs", "none"],
+    "airflow": ["Yes", "No"],
+    "streamlit": ["Yes", "No"],
     "include_code_scaffold": ["Yes", "No"]
 }
