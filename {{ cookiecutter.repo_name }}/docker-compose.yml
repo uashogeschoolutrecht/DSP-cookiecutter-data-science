@@ -1,13 +1,46 @@
 version: '3.9'
 
 services:
+
+  reverse-proxy:
+    image: traefik:v2.5
+    command:
+        - "--api.dashboard=true" 
+        - "--api.insecure=true"
+        - "--providers.docker"
+        - "--entrypoints.web.address=:8081"
+    ports:
+        - "8081:8081" # http
+    volumes:
+        - /var/run/docker.sock:/var/run/docker.sock # So that Traefik can listen to the Docker events
+    labels:
+        - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+        - "traefik.http.routers.api.service=api@internal"
+        - "traefik.http.routers.dashboard.rule=PathPrefix(`/dashboard`)"
+        - "traefik.http.routers.dashboard.service=api@internal"
+        - "traefik.http.routers.dashboard.middlewares=dashboard-stripprefix"
+        - "traefik.http.middlewares.dashboard-stripprefix.stripprefix.prefixes=/dashboard"
+
+  landing-page:
+    image: nginx:latest # use the official nginx image
+    volumes:
+        - ./landing-page:/usr/share/nginx/html:ro # make sure the path points to the directory containing your index.html
+    labels:
+        - "traefik.http.routers.landing-page.rule=PathPrefix(`/`)" # ensure this is the first route to catch
+        - "traefik.http.routers.landing-page.entrypoints=web"
+        - "traefik.http.routers.landing-page.priority=1"
+
   mkdocs:
     build: ./docs 
     volumes:
       - ./docs:/docs
-    ports:
-      - "8000:8000"
     command: "mkdocs serve -a 0.0.0.0:8000"
+    labels:
+      - "traefik.http.routers.mkdocs.rule=PathPrefix(`/mkdocs`)"
+      - "traefik.http.routers.mkdocs.entrypoints=web"
+      - "traefik.http.services.mkdocs.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.mkdocs-stripprefix.stripprefix.prefixes=/mkdocs"
+      - "traefik.http.routers.mkdocs.middlewares=mkdocs-stripprefix"
 
   #{% if cookiecutter.airflow == "Yes" %}
   airflow:
@@ -21,8 +54,14 @@ services:
       - ./airflow/dags:/opt/airflow/dags
       - ./data/raw:/data/raw
     ports:
-     - "8080:8080"
+      - "8080:8080"
     command: airflow standalone
+    labels:
+      - "traefik.http.routers.airflow.rule=PathPrefix(`/login`)"
+      - "traefik.http.routers.airflow.entrypoints=web"
+      - "traefik.http.services.airflow.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.airflow-stripprefix.stripprefix.prefixes=/login"
+      - "traefik.http.routers.airflow.middlewares=airflow-stripprefix"
 
   airflow_postgres:
     image: postgres:latest
@@ -40,18 +79,18 @@ services:
   #{% if cookiecutter.streamlit == "Yes" %}
   streamlit:
     image: yourstreamlitapp:latest
-    # labels:
-    #     - "traefik.http.routers.app-vae.rule=PathPrefix(`/app-vae`)"
-    #     - "traefik.http.routers.app-vae.entrypoints=web"
-    #     - "traefik.http.services.app-vae.loadbalancer.server.port=8501"
-    #     - "traefik.http.middlewares.app-vae-stripprefix.stripprefix.prefixes=/app-vae"
-    #     - "traefik.http.routers.app-vae.middlewares=app-vae-stripprefix"
     build: ./streamlit
     command: streamlit run streamlit_app.py --server.port 8501
     volumes:
-        - ./:/usr/src/app
+      - ./:/usr/src/app
     ports:
       - "8501:8501"
+    labels:
+      - "traefik.http.routers.streamlit.rule=PathPrefix(`/streamlit`)"
+      - "traefik.http.routers.streamlit.entrypoints=web"
+      - "traefik.http.services.streamlit.loadbalancer.server.port=8501"
+      - "traefik.http.middlewares.streamlit-stripprefix.stripprefix.prefixes=/streamlit"
+      - "traefik.http.routers.streamlit.middlewares=streamlit-stripprefix"
     
   #{% endif %}
 volumes:
