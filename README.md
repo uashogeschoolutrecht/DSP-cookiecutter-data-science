@@ -26,7 +26,7 @@ pip install cookiecutter-data-science
 To start a new project, run:
 
 ```bash
-ccds
+ccds https://github.com/uashogeschoolutrecht/DSP-cookiecutter-data-science
 ```
 
 ### The resulting directory structure
